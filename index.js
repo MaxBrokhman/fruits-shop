@@ -23,13 +23,12 @@ const replaceTemplate = (template, product) => {
     : updatedTemp.replace(/{%NOT_ORGANIC%}/g, 'not-organic')
 }
 
-const cardsHtml = parsedData.map(item => replaceTemplate(cardTemp, item)).join('')
-const overviewHtml = overviewTemp.replace(/{%PRODUCT_CARDS%}/g, cardsHtml)
-
 const server = http.createServer((req, res) => {
   const { query, pathname } = url.parse(req.url, true)
   switch(pathname){
     case '/':
+      const cardsHtml = parsedData.map(item => replaceTemplate(cardTemp, item)).join('')
+      const overviewHtml = overviewTemp.replace(/{%PRODUCT_CARDS%}/g, cardsHtml)
       res.writeHead(200, {
         'Content-Type': 'text/html',
       })
@@ -57,7 +56,8 @@ const server = http.createServer((req, res) => {
       })
       res.end('<h1>Page not found</h1>')
   }
-  
 })
 
-server.listen(3000, '127.0.0.1')
+const port = process.env.PORT || 3000
+
+server.listen(port, '127.0.0.1')
