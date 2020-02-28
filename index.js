@@ -1,5 +1,6 @@
 const http = require('http')
 const fs = require('fs')
+const url = require('url')
 
 const data = fs.readFileSync(`${__dirname}/data.json`, 'utf-8')
 const overviewTemp = fs.readFileSync(`${__dirname}/templates/overview.html`, 'utf-8')
@@ -26,10 +27,13 @@ const cardsHtml = parsedData.map(item => replaceTemplate(cardTemp, item)).join('
 const overviewHtml = overviewTemp.replace(/{%PRODUCT_CARDS%}/g, cardsHtml)
 
 const server = http.createServer((req, res) => {
-  const pathName = req.url
-  switch(pathName){
+  const { query, pathname } = url.parse(req.url, true)
+  switch(pathname){
     case '/':
-      res.end('This is overview')
+      res.writeHead(200, {
+        'Content-Type': 'text/html',
+      })
+      res.end(overviewHtml)
       break
     case '/api':
       res.writeHead(200, {
@@ -37,14 +41,16 @@ const server = http.createServer((req, res) => {
       })
       res.end(data)
       break
-    case '/overview':
-      res.writeHead(200, {
-        'Content-Type': 'text/html',
-      })
-      res.end(overviewHtml)
-      break
-    case '/products':
-      break
+    case '/product':
+      const product = parsedData.find(product => product.id === Number(query.id))
+      if(product){
+        const productHtml = replaceTemplate(productTemp, product)
+        res.writeHead(200, {
+          'Content-Type': 'text/html',
+        })
+        res.end(productHtml)
+        break
+      }
     default:
       res.writeHead(404, {
         'Content-Type': 'text/html'
